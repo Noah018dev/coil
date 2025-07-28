@@ -1,0 +1,11 @@
+# rust stuff
+target/
+Cargo.lock
+
+# python stuff
+__pycache__/
+local_testing/
+.venv/
+
+# vs-code stuff
+.vscode/
