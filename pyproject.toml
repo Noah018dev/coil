@@ -1,0 +1,11 @@
+[project]
+name = "coil-threading"
+version = "0.1.0"
+description = "threading library for Python, built on rust tokio"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["maturin"]
+build-backend = "maturin"
