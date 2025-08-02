@@ -1,4 +1,5 @@
 import abc
+import contextlib
 from collections.abc import Callable, Generator
 from typing import Any, NoReturn
 from .threads import Promise, submit_global, Pool
@@ -13,7 +14,8 @@ class Supervisor:
             self._submit = self._pool.submit
         else:
             self._submit = submit_global
-        self._jobs: dict[str, Promise]
+
+        self._jobs: dict[str, Promise] = {}
 
     def start_service(
         self, name: str, job: "Job", *args: Any, **kwargs: dict[str, Any]
@@ -27,11 +29,8 @@ class Supervisor:
         self._submit = exits  # type: ignore
 
         for job in self._jobs.values():
-            try:
+            with contextlib.suppress(SystemExit):
                 job.result()
-            except SystemExit:
-                pass
-
         if self._pool:
             self._pool.shutdown()
 
@@ -55,7 +54,7 @@ class Job(abc.ABC):
         self,
         submit: Callable[[Callable[..., Any]], Promise],
         *args: Any,
-        **kwargs: dict[str, Any]
+        **kwargs: dict[str, Any],
     ) -> Promise: ...
 
 
@@ -69,7 +68,7 @@ class Once(Job):
         self,
         submit: Callable[[Callable[..., Any]], Promise],
         *args: Any,
-        **kwargs: dict[str, Any]
+        **kwargs: dict[str, Any],
     ) -> Promise:
         def run() -> None:
             try:
@@ -105,7 +104,7 @@ class Retry(Once):
         self,
         submit: Callable[[Callable[..., Any]], Promise],
         *args: Any,
-        **kwargs: dict[str, Any]
+        **kwargs: dict[str, Any],
     ) -> Promise:
         def run() -> None:
             max_fails = max(self._max_consecutive_fails, self._max_fails_total)
@@ -142,7 +141,7 @@ class Retry(Once):
         self,
         submit: Callable[[Callable[..., Any]], Promise],
         *args: Any,
-        **kwargs: dict[str, Any]
+        **kwargs: dict[str, Any],
     ) -> Generator[Promise, Any, NoReturn]:
         consecutive_fails = 0
         total_fails = 0
@@ -188,7 +187,7 @@ class Loop(Job):
         self,
         submit: Callable[[Callable[..., Any]], Promise],
         *args: Any,
-        **kwargs: dict[str, Any]
+        **kwargs: dict[str, Any],
     ) -> Promise:
         def run() -> None:
             if isinstance(self._job, Retry):

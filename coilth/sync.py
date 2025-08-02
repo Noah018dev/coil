@@ -37,7 +37,7 @@ class Notification:
 
     def notify(self, count: int) -> None:
         if len(self._waiters) == 0:
-            raise RuntimeError("There are no waiters.")
+            return None
 
         for _ in range(count):
             self._waiters.popleft().release()

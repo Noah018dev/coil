@@ -53,7 +53,7 @@ class Lock:
 
     def release(self) -> None:
         if not self.get_locked:
-            raise RuntimeError("Tried to release lock while it was already released.")
+            return
 
         self._inner.release()
 
